@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
-# nvidia-docker became docker --gpus all now and probably the NV_GPU flag doesn't work anymore. But maybe someone might want to still use nvidia-docker2 package, so this script needs to become slightly more generic.
+# this check also didn't work. i need to actually find out what version matters here. 
+# nvidia-docker became docker --gpus all now and probably the NV_GPU flag doesn't work anymore.
+# But maybe someone might want to still use nvidia-docker2 package, so this script needs to become slightly more generic.
 DOCKERAPIVERSION=`docker version --format '{{.Client.APIVersion}}'`
 NEWERDOCKERAPI=`echo "$DOCKERAPIVERSION >= 1.49" | bc -l` #use bc so we can do floating point stuff
-NVIDIA_DORKER_RUN_COMMAND="docker" #"nvidia-container-runtime"
+NEWERDOCKERAPI=`echo "1 > 0" | bc -l`
+NVIDIA_DORKER_RUN_COMMAND="nvidia-docker" #"nvidia-container-runtime"
 #DRYRUN=yes ###comment to actually run this
 #REBUILD=yes
 
