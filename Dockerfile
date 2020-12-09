@@ -90,7 +90,22 @@ ADD requirements_ros.txt /root/
 #RUN /opt/boost/b2 headers \
 #    && /opt/boost/b2
 
-#RUN /root/ros.sh $PYTHON_VERSION
+RUN /root/ros.sh $PYTHON_VERSION
+
+##setting up opencv
+
+ADD requirements_opencv.txt /root/
+RUN python -m pip install --upgrade pip && \
+    python -m pip install --trusted-host pypi.python.org -r /root/requirements_opencv.txt
+
+#why? idk...
+WORKDIR /root/ros_catkin_ws
+RUN /root/ros_catkin_ws/src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release \
+    -DSETUPTOOLS_DEB_LAYOUT=OFF --cmake-args -DPYTHON_VERSION=$PYTHON_VERSION
+
+##all these should work at the same time.
+ADD scripts/test.sh /root
+#RUN /root/test.sh
 
 ADD banner.txt /root/
 ADD scripts/entrypoint.sh /root/
