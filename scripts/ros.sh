@@ -4,7 +4,7 @@
 PYTHON_VERSION=$1
 
 
-apt install -y libboost-all-dev
+apt install -y libboost-all-dev libcv-dev
 #apt install -y lsb-release \ I've added this to the dockerfile.
 #               libzstd1 # needed by opencv
 
@@ -51,7 +51,7 @@ if [ -f "kinetic-ros_comm-wet.rosinstall" ]
 then
 	echo "installation file already exists. using this one"
 else
-	rosinstall_generator ros_comm sensor_msgs image_transport common_msgs --rosdistro kinetic --deps --wet-only > kinetic-ros_comm-wet.rosinstall
+	rosinstall_generator ros_comm sensor_msgs image_transport common_msgs cv_bridge --rosdistro kinetic --deps --wet-only > kinetic-ros_comm-wet.rosinstall
 fi
 
 ### this needs to be python2.7 and not conda's 3.6 version
@@ -66,7 +66,10 @@ rosdep install --from-paths src --ignore-src --rosdistro kinetic -y  --os=ubuntu
 
 cd  /usr/lib/x86_64-linux-gnu/
 ln -s libboost_python-py35.so libboost_python3.so
-~/ros_catkin_ws/src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF --cmake-args -DPYTHON_VERSION=$PYTHON_VERSION
+~/ros_catkin_ws/src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF --cmake-args -DPYTHON_VERSION=$PYTHON_VERSION\
+-DPYTHON_EXECUTABLE=/opt/conda/bin/python \
+-DPYTHON_INCLUDE_DIR=/opt/conda/include/python3.6m \
+-DPYTHON_LIBRARY=/opt/conda/lib/libpython3.6m.so
 
 
 ###oh, i changed from 3.5 to 3.6 so this might break as well...

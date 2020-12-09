@@ -1,0 +1,3 @@
+[submodule "catkin_ws/src/depth_estimation_with_densenet-unet_hybrid"]
+	path = catkin_ws/src/depth_estimation_with_densenet-unet_hybrid
+	url = https://github.com/frederico-klein/depth_estimation_with_densenet-unet_hybrid.git
