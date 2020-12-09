@@ -66,7 +66,7 @@ rosdep install --from-paths src --ignore-src --rosdistro kinetic -y  --os=ubuntu
 
 cd  /usr/lib/x86_64-linux-gnu/
 ln -s libboost_python-py35.so libboost_python3.so
-./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF --cmake-args -DPYTHON_VERSION=$PYTHON_VERSION
+~/ros_catkin_ws/src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF --cmake-args -DPYTHON_VERSION=$PYTHON_VERSION
 
 
 ###oh, i changed from 3.5 to 3.6 so this might break as well...
