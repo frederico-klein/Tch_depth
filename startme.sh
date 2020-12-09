@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 
-# nvidia-docker became docker --gpus all now and probably the NV_GPU flag doesn't work anymore. But maybe someone might want to still use nvidia-docker2 package, so this script needs to become slightly more generic. 
-
+# nvidia-docker became docker --gpus all now and probably the NV_GPU flag doesn't work anymore. But maybe someone might want to still use nvidia-docker2 package, so this script needs to become slightly more generic.
+DOCKERAPIVERSION=`docker version --format '{{.Client.APIVersion}}'`
+NEWERDOCKERAPI=`echo "$DOCKERAPIVERSION >= 1.49" | bc -l` #use bc so we can do floating point stuff
+NVIDIA_DORKER_RUN_COMMAND="docker" #"nvidia-container-runtime"
+#DRYRUN=yes ###comment to actually run this
+#REBUILD=yes
 
 PASSWD=$1
 MYUSERNAME=frederico
@@ -26,8 +30,12 @@ else
     #echo "doing nothing"
     OLDDIR=$PWD
     cd $BUILDINDIR
-    nvidia-docker build -t $DOCKERMACHINENAME $DOCKERFILE
-    #nvidia-docker build --no-cache -t $DOCKERMACHINENAME .
+    if [ -z "$REBUILD" ]
+    then
+    	$NVIDIA_DORKER_RUN_COMMAND build -t $DOCKERMACHINENAME $DOCKERFILE
+    else
+        $NVIDIA_DORKER_RUN_COMMAND build --no-cache -t $DOCKERMACHINENAME .
+    fi
     cd $OLDDIR
     } ||
     {
@@ -65,6 +73,28 @@ else
    #nvidia-docker run --rm -it -u root -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v $THISVOLUMENAME:$CATKINWSPATH -v /mnt/share:/mnt/share -h $MACHINEHOSTNAME --network=br0 --ip=$DOCKERMACHINEIP $DOCKERMACHINENAME bash # -c "jupyter notebook --port=8888 --no-browser --ip=172.28.5.4 --allow-root &" && bash -i
 
 
+  if [ -z "$DRYRUN" ]
+  then
+      {
+	   if (( NEWERDOCKERAPI ))
+	   then
+	     {
+	     echo "starting docker - new version"
+	     docker run --gpus all  --rm -it -u root -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v $THISVOLUMENAME:$CATKINWSPATH -v /mnt/share:/mnt/share -h $MACHINEHOSTNAME --network=br0 --ip=$DOCKERMACHINEIP $DOCKERMACHINENAME bash # -c "jupyter notebook --port=8888 --no-browser --ip=172.28.5.4 --allow-root &" && bash -i
+	     }
+	   else
+	     {
+	     echo "starting docker - old version"
+	     $NVIDIA_DORKER_RUN_COMMAND run --rm -it -u root -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v $THISVOLUMENAME:$CATKINWSPATH -v /mnt/share:/mnt/share -h $MACHINEHOSTNAME --network=br0 --ip=$DOCKERMACHINEIP $DOCKERMACHINENAME bash # -c "jupyter notebook --port=8888 --no-browser --ip=172.28.5.4 --allow-root &" && bash -i
+	     }
+	   fi
+      }
+  else
+      {
+	     echo "DRY RUN"
+	     $NVIDIA_DORKER_RUN_COMMAND run --rm -it -u root -h $MACHINEHOSTNAME --network=br0 --ip=$DOCKERMACHINEIP $DOCKERMACHINENAME bash
+      }
+  fi
   ## if I add this with -v I can't catkin_make it with entrypoint...
   #-v /temporal-segment-networks/catkin_ws:$PWD/catkin_ws/src
   #

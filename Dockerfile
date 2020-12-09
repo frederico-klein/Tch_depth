@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
          libpng-dev &&\
      rm -rf /var/lib/apt/lists/*
 
-
 RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh  && \
      chmod +x ~/miniconda.sh && \
      ~/miniconda.sh -b -p /opt/conda && \
@@ -31,18 +30,16 @@ RUN cd pytorch && TORCH_CUDA_ARCH_LIST="3.5 5.2 6.0 6.1 7.0+PTX" TORCH_NVCC_FLAG
 
 RUN git clone https://github.com/pytorch/vision.git && cd vision && pip install -v .
 
-WORKDIR /workspace
-RUN chmod -R a+w /workspace
+############# needs sshd
 
-
-############# needs sshd and ros with python3 running (copy what I did for fr machine)
-
-##merge later when it works!
+## merge when it works!
 
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get -y update
 RUN apt-get install -y --fix-missing \
+  build-essential \
+  # ros dependency, but i can add here.
   python3-pip \
   python-pip \
   openssh-server\
@@ -50,7 +47,8 @@ RUN apt-get install -y --fix-missing \
   #python-sh is needed for the fix.py. once that is solved, remove it.
   python-sh \
   tar\
-  libboost-all-dev \
+  lsb-release \
+  # needed by opencv3
   && apt-get clean && rm -rf /tmp/* /var/tmp/*
 
 # to get ssh working for the ros machine to be functional: (adapted from docker docs running_ssh_service)
@@ -72,16 +70,28 @@ RUN pip3 install --trusted-host pypi.python.org -r /root/requirements_ros.txt &&
     python -m pip install --trusted-host pypi.python.org -r /root/requirements_ros.txt
 
 ADD scripts/ros.sh /root/
-### microsoft broke github, so I need this to run wstool. probably need to remove this when it gets fixed!
-#ADD scripts/fix.py /root/
-RUN /root/ros.sh \
-    && echo "source /root/ros_catkin_ws/install_isolated/setup.bash" >> /etc/bash.bashrc
+ADD requirements_ros.txt /root/
 
-ENV ROS_MASTER_URI=http://SATELLITE-S50-B:11311
+##other things we need
+##ubuntu xenial comes with version 1.3.1. I probably need to static version opencv3, or this will keep breaking.
+#WORKDIR /opt
+#RUN wget https://github.com/facebook/zstd/releases/download/v1.3.7/zstd-1.3.7.tar.gz \
+#  && tar -xvf zstd-1.3.7.tar.gz \
+#  && cd zstd-1.3.7 \
+#  && make \
+#  && make install
 
-#add my snazzy banner
+##boost. libboost-dev-all needs to work, this is ridiculous
+#WORKDIR /opt
+#RUN git clone --recursive --branch boost-1.70.0  https://github.com/boostorg/boost.git
+
+#RUN /opt/boost/bootstrap.sh \
+
+#RUN /opt/boost/b2 headers \
+#    && /opt/boost/b2
+
+#RUN /root/ros.sh $PYTHON_VERSION
+
 ADD banner.txt /root/
-
 ADD scripts/entrypoint.sh /root/
 ENTRYPOINT ["/root/entrypoint.sh"]
-###needs the catkin stuff as well.

@@ -1,7 +1,21 @@
 #!/usr/bin/env bash
 #from http://wiki.ros.org/kinetic/Installation/Source with minor adaptations to make it compile
 
-OLDDIR=$PWD
+PYTHON_VERSION=$1
+
+
+apt install -y libboost-all-dev
+#apt install -y lsb-release \ I've added this to the dockerfile.
+#               libzstd1 # needed by opencv
+
+sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+
+apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 || curl -sSL 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC1CF6E31E6BADE8868B172B4F42ED6FBAB17C654' | apt-key add -
+
+apt-get update && apt-get install -y python-rosdep python-rosinstall-generator python-wstool python-rosinstall python-opencv ##will opencv work like this?
+
+apt-get install -y --only-upgrade python-catkin-pkg
+
 #set -e
 {
 rosdep init
@@ -30,7 +44,7 @@ apt-get update
 else echo "there"; fi
 
 mkdir -p ~/ros_catkin_ws
-cd ~/ros_catkin_ws
+pushd ~/ros_catkin_ws
 #cp /root/fix.py ./
 
 if [ -f "kinetic-ros_comm-wet.rosinstall" ]
@@ -50,12 +64,18 @@ wstool init -j`nproc` src kinetic-ros_comm-wet.rosinstall
 
 rosdep install --from-paths src --ignore-src --rosdistro kinetic -y  --os=ubuntu:xenial
 
-#no idea if this will work...
-./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF --cmake-args -DPYTHON_VERSION=3.6
-
 cd  /usr/lib/x86_64-linux-gnu/
+ln -s libboost_python-py35.so libboost_python3.so
+./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF --cmake-args -DPYTHON_VERSION=$PYTHON_VERSION
+
+
 ###oh, i changed from 3.5 to 3.6 so this might break as well...
-#ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so libboost_python3.so
+
+#ln -s "libzstd.so.1.3.1" "libzstd.so"
+
+
+#last but not the least, we want to source devel.bash
+echo "source ~/ros_catkin_ws/install_isolated/setup.bash" >>  ~/.bashrc
 
 # export PATH=$OLDPATH
-cd $OLDDIR
+popd
