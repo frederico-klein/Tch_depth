@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
-# nvidia-docker became docker --gpus all now and probably the NV_GPU flag doesn't work anymore. But maybe someone might want to still use nvidia-docker2 package, so this script needs to become slightly more generic.
+# this check also didn't work. i need to actually find out what version matters here.
+# nvidia-docker became docker --gpus all now and probably the NV_GPU flag doesn't work anymore.
+# But maybe someone might want to still use nvidia-docker2 package, so this script needs to become slightly more generic.
 DOCKERAPIVERSION=`docker version --format '{{.Client.APIVersion}}'`
 NEWERDOCKERAPI=`echo "$DOCKERAPIVERSION >= 1.49" | bc -l` #use bc so we can do floating point stuff
+NEWERDOCKERAPI=`echo "1 > 0" | bc -l`
+#NVIDIA_DORKER_RUN_COMMAND="nvidia-docker" #"nvidia-container-runtime"
 NVIDIA_DORKER_RUN_COMMAND="docker" #"nvidia-container-runtime"
 #DRYRUN=yes ###comment to actually run this
 #REBUILD=yes
@@ -13,7 +17,7 @@ DOCKERHOSTNAME=poop
 THISVOLUMENAME=sshvolume-torch
 DOCKERMACHINEIP=172.28.5.30
 DOCKERMACHINENAME=tch
-MACHINEHOSTNAME=torch_machine2
+MACHINEHOSTNAME=torch_machine3
 CATKINWSPATH=/root/catkin_ws
 #DOCKERFILE=docker/pytorch/ ## standard should be .
 #BUILDINDIR=$PWD/pytorch ##standard should be $PWD
@@ -69,7 +73,7 @@ else
     break
   }
 #  nvidia-docker run --rm -it -u root -p 8888:8888 -p 222:22 -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v $THISVOLUMENAME:/catkin_ws -h $MACHINEHOSTNAME --network=br0 --ip=$DOCKERMACHINEIP $DOCKERMACHINENAME bash # -c "jupyter notebook --port=8888 --no-browser --ip=$DOCKERMACHINEIP --allow-root &" && bash -i
-   docker run --gpus all  --rm -it -u root -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v $THISVOLUMENAME:$CATKINWSPATH -v /mnt/share:/mnt/share -h $MACHINEHOSTNAME --network=br0 --ip=$DOCKERMACHINEIP $DOCKERMACHINENAME bash # -c "jupyter notebook --port=8888 --no-browser --ip=172.28.5.4 --allow-root &" && bash -i
+   #docker run --gpus all  --rm -it -u root -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v $THISVOLUMENAME:$CATKINWSPATH -v /mnt/share:/mnt/share -h $MACHINEHOSTNAME --network=br0 --ip=$DOCKERMACHINEIP $DOCKERMACHINENAME bash # -c "jupyter notebook --port=8888 --no-browser --ip=172.28.5.4 --allow-root &" && bash -i
    #nvidia-docker run --rm -it -u root -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v $THISVOLUMENAME:$CATKINWSPATH -v /mnt/share:/mnt/share -h $MACHINEHOSTNAME --network=br0 --ip=$DOCKERMACHINEIP $DOCKERMACHINENAME bash # -c "jupyter notebook --port=8888 --no-browser --ip=172.28.5.4 --allow-root &" && bash -i
 
 
