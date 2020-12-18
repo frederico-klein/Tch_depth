@@ -107,6 +107,10 @@ RUN /root/ros_catkin_ws/src/catkin/bin/catkin_make_isolated --install -DCMAKE_BU
 ADD scripts/test.sh /root
 #RUN /root/test.sh
 
+## I need to add this somewhere... to source probably
+### export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/conda/lib
+
 ADD banner.txt /root/
 ADD scripts/entrypoint.sh /root/
+ ## I might want to use an entrypoint in catkin_ws because it is shared and therefore updateable.
 ENTRYPOINT ["/root/entrypoint.sh"]
